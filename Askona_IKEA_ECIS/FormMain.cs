@@ -16,21 +16,20 @@ namespace Askona_IKEA_ECIS
             StartDate.Value = DateTime.Now;
             FinishDate.Value = DateTime.Now.AddDays(7);
             this.Text += $" - {Environment.UserName} - {System.Windows.Forms.Application.ProductVersion}";
+            StoreCB.Items.Add("ALL");
+            StoreCB.SelectedIndex = 0;
+            StoreCB.Items.Add("ALL(+)");
+            StoreCB.Items.Add("ALL(-)");
+            StoreCB.Items.Add("MAG(-)");
+            StoreCB.Items.Add("MAG(0)");
+            StoreCB.Items.Add("SUM");
+            ItemCB.Items.Add("ALL  |  ALL");
+            ItemCB.SelectedIndex = 0;
             try
             {
-                StoreCB.Items.Add("ALL");
-                StoreCB.SelectedIndex = 0;
-                StoreCB.Items.Add("ALL(+)");
-                StoreCB.Items.Add("ALL(-)");
-                StoreCB.Items.Add("MAG(-)");
-                StoreCB.Items.Add("MAG(0)");
-                StoreCB.Items.Add("SUM");
                 var stores = galaxy.IKEA_CATALOG.Select(x => x.STORE).Distinct().OrderBy(x => x).ToList();
                 foreach (var store in stores)
-                    StoreCB.Items.Add(store);
-
-                ItemCB.Items.Add("ALL  |  ALL");
-                ItemCB.SelectedIndex = 0;
+                    StoreCB.Items.Add(store);             
                 var items = galaxy.IKEA_CATALOG.Select(x => x.ARTNO + "  |  " + x.ARTNAME).Distinct().OrderBy(x => x).ToList();
                 foreach (var item in items)
                     ItemCB.Items.Add(item);
@@ -123,12 +122,12 @@ namespace Askona_IKEA_ECIS
                                             FINISHDATE = g.Key.FINISHDATE
                                         });
                 else
-                    plandata = plandata.Where(x => x.ARTNO == StoreCB.Text);
+                    plandata = plandata.Where(x => x.STORE == StoreCB.Text);
                 plandata = plandata.OrderBy(x => new { x.STORE, x.ARTNO });
                 PlanDataGrid.DataSource = new CustomBindingList<IKEA_PLAN_VIEW>(plandata.ToList());
                 int[] width = { 35, 60, 200, 30, 30, 30, 35, 30, 30, 30, 35, 30, 70, 50, 45, 50, 50, 35, 50, 35, 65, 60, 25, 35, 35, 35, 60, 60 };
                 string[] name = { "МАГ", "АРТ", "НАИМЕНОВАНИЕ", "Н1", "Н2", "Н3", "НСР", "Б1", "Б2", "Б3", "БСР", "ТЕК", "ПОТРМАГ", "НАЛИЧ",
-                             "ПОСТ", "ТРАНЗ", "БУДЕТ", "MIN", "MAXСР", "MAX", "ПРОГНОЗ", "ДЕЛЬТА", "SL", "СГП", "ПЗ", "БПЗ", "НАЧАЛО", "КОНЕЦ" };
+                                "ПОСТ", "ТРАНЗ", "БУДЕТ", "MIN", "MAXСР", "MAX", "ПРОГНОЗ", "ДЕЛЬТА", "SL", "СГП", "ПЗ", "БПЗ", "НАЧАЛО", "КОНЕЦ" };
                 for (int i = 0; i < PlanDataGrid.ColumnCount; i++)
                 {
                     PlanDataGrid.Columns[i].Width = width[i];
@@ -209,12 +208,12 @@ namespace Askona_IKEA_ECIS
                 {
                     CalculateButton.Visible = false;
                     galaxy.Database.ExecuteSqlCommand($@"begin 
-                                                        gal_asup.IKEA.CALCULATE_2020
-                                                        (startdate => '{StartDate.Value:yyyyMMdd}',
-                                                        finishdate => '{ FinishDate.Value:yyyyMMdd}',
-                                                        p_store => '{StoreCB.Text}',
-                                                        p_mark => {Convert.ToInt16(FullChB.Checked)});
-                                                        end;");
+                                                           gal_asup.IKEA.CALCULATE_2020
+                                                             (startdate => '{StartDate.Value:yyyyMMdd}',
+                                                              finishdate => '{FinishDate.Value:yyyyMMdd}',
+                                                              p_store => '{StoreCB.Text}',
+                                                              p_mark => {Convert.ToInt16(FullChB.Checked)});
+                                                         end;");
                 }
                 catch (Exception ex)
                 {
@@ -223,7 +222,7 @@ namespace Askona_IKEA_ECIS
                 CalculateButton.Visible = true;
                 View_Plan();
             }
-            else MessageBox.Show("Неверный параметр магазина! Допускается значение ALL или конкретный номер.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else MessageBox.Show("Неверный параметр магазина! Допускается значение ALL или конкретный номер.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         private void FillColorButton_Click(object sender, EventArgs e) => FillColor_DGV(PlanDataGrid);
         public void FillColor_DGV(DataGridView dgv)
