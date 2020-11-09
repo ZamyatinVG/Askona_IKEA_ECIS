@@ -16,21 +16,21 @@ namespace Askona_IKEA_ECIS
             StartDate.Value = DateTime.Now;
             FinishDate.Value = DateTime.Now.AddDays(7);
             this.Text += $" - {Environment.UserName} - {System.Windows.Forms.Application.ProductVersion}";
-            StoreCB.Items.Add("ALL");
+            StoreCB.Items.AddRange(new string[]{ "ALL", "ALL(+)", "ALL(-)", "MAG(-)", "MAG(0)", "SUM" });
             StoreCB.SelectedIndex = 0;
-            StoreCB.Items.Add("ALL(+)");
-            StoreCB.Items.Add("ALL(-)");
-            StoreCB.Items.Add("MAG(-)");
-            StoreCB.Items.Add("MAG(0)");
-            StoreCB.Items.Add("SUM");
             ItemCB.Items.Add("ALL  |  ALL");
             ItemCB.SelectedIndex = 0;
             try
             {
                 var stores = galaxy.IKEA_CATALOG.Select(x => x.STORE).Distinct().OrderBy(x => x).ToList();
                 foreach (var store in stores)
-                    StoreCB.Items.Add(store);             
-                var items = galaxy.IKEA_CATALOG.Select(x => x.ARTNO + "  |  " + x.ARTNAME).Distinct().OrderBy(x => x).ToList();
+                    StoreCB.Items.Add(store);
+                var items = galaxy.IKEA_CATALOG
+                    .Select(x => new { x.ARTNO, x.ARTNAME })
+                    .Distinct()
+                    .OrderBy(x => x.ARTNAME)
+                    .Select(x => x.ARTNO + "  |  " + x.ARTNAME)
+                    .ToList();
                 foreach (var item in items)
                     ItemCB.Items.Add(item);
             }
